@@ -1,0 +1,8 @@
+{
+  "title": "Fastify + React SSR starter",
+  "description": "A server-rendered TypeScript app, ready for your next idea.",
+  "count": "Current count: {{count}}",
+  "increment": "Increment",
+  "incrementLater": "Increment later (thunk)",
+  "language": "Language"
+}

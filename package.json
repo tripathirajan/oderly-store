@@ -1,0 +1,87 @@
+{
+  "name": "@tripathirajan/oderly-store",
+  "version": "1.0.0",
+  "private": true,
+  "description": "The Oderly customer storefront for discovering products and shopping online.",
+  "keywords": [
+    "oderly",
+    "oderly-store",
+    "online-store",
+    "storefront",
+    "e-commerce",
+    "shopping",
+    "retail"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tripathirajan/oderly-store.git"
+  },
+  "bugs": {
+    "url": "https://github.com/tripathirajan/oderly-store/issues"
+  },
+  "homepage": "https://github.com/tripathirajan/oderly-store#readme",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "prepare": "husky",
+    "dev": "npm run build:dev && concurrently -k -n build,app,cdn,metrics \"node scripts/app-builder.mjs --mode dev --watch --no-clean\" \"node --watch build/server/index.js\" \"node --watch build/server/cdn.js\" \"node --watch build/server/metrics.js\"",
+    "build": "npm run build:dev",
+    "clean": "node scripts/clean.mjs",
+    "build:dev": "npm run typecheck && node scripts/app-builder.mjs --mode dev --clean",
+    "build:prod": "npm run typecheck && node scripts/app-builder.mjs --mode prod --clean",
+    "build:server": "node scripts/app-builder.mjs --target server",
+    "build:cdn": "node scripts/app-builder.mjs --target cdn",
+    "build:metrics": "node scripts/app-builder.mjs --target metrics",
+    "build:client": "node scripts/app-builder.mjs --target client",
+    "start": "node build/server/index.js",
+    "start:cdn": "node build/server/cdn.js",
+    "start:metrics": "node build/server/metrics.js",
+    "test": "node scripts/test-runner.mjs",
+    "test:coverage": "c8 --config config/c8rc.json npm test",
+    "typecheck": "tsc --noEmit -p config/tsconfig.json",
+    "lint": "eslint --config config/eslint.config.mjs .",
+    "verify": "npm run typecheck && npm run test:coverage && npm run lint && npm run format:check && npm run build:prod",
+    "format": "prettier --config config/prettier.json --write .",
+    "format:check": "prettier --config config/prettier.json --check ."
+  },
+  "lint-staged": {
+    "*.{js,mjs,cjs,ts,tsx}": [
+      "eslint --config config/eslint.config.mjs --fix",
+      "prettier --config config/prettier.json --write"
+    ],
+    "*.{json,md,css,yml,yaml}": "prettier --config config/prettier.json --write"
+  },
+  "dependencies": {
+    "@fastify/static": "^8.2.0",
+    "fastify": "^5.6.1",
+    "i18next": "^25.5.2",
+    "immutable": "^5.1.3",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "react-i18next": "^16.2.4",
+    "react-redux": "^9.2.0",
+    "redux": "^5.0.1",
+    "redux-thunk": "^3.1.0"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^21.2.4",
+    "@commitlint/config-conventional": "^21.2.4",
+    "@eslint/js": "^9.38.0",
+    "@types/node": "^24.7.2",
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2",
+    "@typescript-eslint/eslint-plugin": "^8.46.1",
+    "@typescript-eslint/parser": "^8.46.1",
+    "c8": "^12.0.0",
+    "concurrently": "^9.2.1",
+    "esbuild": "^0.25.11",
+    "eslint": "^9.38.0",
+    "eslint-config-prettier": "^10.1.8",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.6.0",
+    "prettier": "^3.6.2",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3"
+  }
+}

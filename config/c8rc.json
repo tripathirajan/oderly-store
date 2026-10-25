@@ -1,0 +1,12 @@
+{
+  "all": true,
+  "include": ["src/**/*.ts", "src/**/*.tsx"],
+  "exclude": ["src/shared/globals.d.ts", "src/client/index.tsx", "src/server/index.tsx"],
+  "reporter": ["text", "lcov", "html"],
+  "reports-dir": "coverage",
+  "check-coverage": true,
+  "branches": 75,
+  "functions": 85,
+  "lines": 90,
+  "statements": 90
+}

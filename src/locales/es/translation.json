@@ -1,0 +1,8 @@
+{
+  "title": "Plantilla de Fastify + React SSR",
+  "description": "Una aplicación TypeScript renderizada en el servidor, lista para tu próxima idea.",
+  "count": "Contador actual: {{count}}",
+  "increment": "Incrementar",
+  "incrementLater": "Incrementar después (thunk)",
+  "language": "Idioma"
+}

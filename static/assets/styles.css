@@ -1,0 +1,116 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+
+:root {
+  color: #17223b;
+  background: #f4f6fb;
+  font-family: 'DM Sans', sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: radial-gradient(circle at 20% 15%, #e2eaff 0, transparent 32%), #f4f6fb;
+}
+
+.card {
+  width: min(100%, 650px);
+  padding: clamp(28px, 7vw, 64px);
+  border: 1px solid #e7eaf2;
+  border-radius: 24px;
+  background: rgb(255 255 255 / 92%);
+  box-shadow: 0 24px 80px rgb(31 48 90 / 10%);
+}
+
+.eyebrow {
+  color: #6173a0;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+}
+
+h1 {
+  margin: 18px 0 12px;
+  font:
+    700 clamp(2rem, 6vw, 3rem)/1.12 'Space Grotesk',
+    sans-serif;
+  letter-spacing: -0.055em;
+}
+
+.description {
+  color: #65708a;
+  line-height: 1.7;
+}
+
+.counter {
+  margin-top: 36px;
+  padding: 24px;
+  border-radius: 16px;
+  background: #f5f7fc;
+}
+
+.count-label {
+  display: block;
+  margin-bottom: 18px;
+  font-weight: 600;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+button,
+select {
+  min-height: 42px;
+  border: 0;
+  border-radius: 10px;
+  padding: 0 16px;
+  font: inherit;
+}
+
+button {
+  color: white;
+  background: #465ee8;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+button:hover {
+  background: #354bd0;
+}
+
+button:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+button.secondary {
+  color: #34405f;
+  background: #e7eaf3;
+}
+
+.language-picker {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 24px;
+  color: #65708a;
+}
+
+select {
+  border: 1px solid #e1e5ef;
+  background: white;
+  color: #17223b;
+}

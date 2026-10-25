@@ -1,0 +1,9 @@
+node_modules/
+build/
+coverage/
+.env
+.DS_Store
+static/assets/browser.js
+static/assets/browser.js.map
+static/assets/legacy-browser.js
+static/assets/legacy-browser.js.map
