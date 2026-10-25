@@ -8,6 +8,7 @@ export function createBuilds({
   const common = {
     bundle: true,
     logLevel: 'info',
+    jsx: 'automatic',
     ...environmentOptions,
   };
   const serverBuild = {
