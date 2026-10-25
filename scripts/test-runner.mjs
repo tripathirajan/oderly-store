@@ -7,7 +7,7 @@ const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const testConfig = resolve(projectRoot, 'config/tsconfig.json');
 const testsDirectory = resolve(projectRoot, 'tests');
 const testFiles = (await readdir(testsDirectory))
-  .filter((file) => file.endsWith('.test.js'))
+  .filter((file) => file.endsWith('.test.ts'))
   .map((file) => resolve(testsDirectory, file));
 const child = spawn(
   process.execPath,

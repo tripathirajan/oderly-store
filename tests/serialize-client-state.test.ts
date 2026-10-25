@@ -1,13 +1,19 @@
 import assert from 'node:assert/strict';
 import { Map } from 'immutable';
 import { test } from 'node:test';
+import type { FastifyRequest } from 'fastify';
+import type { AppState } from '../src/shared/store.ts';
 import { serializeClientInitialState } from '../src/server/serialize-client-state.ts';
 
 function createRequestLogger() {
-  const errors = [];
+  const errors: Array<[unknown, string]> = [];
   return {
     errors,
-    request: { log: { error: (...args) => errors.push(args) } },
+    request: {
+      log: {
+        error: (error: unknown, message: string) => errors.push([error, message]),
+      },
+    } as unknown as FastifyRequest,
   };
 }
 
@@ -21,14 +27,14 @@ test('serializes the full Immutable Map as entry tuples', () => {
 
 test('logs full-state serialization failure and falls back to the minimum state', () => {
   const { request, errors } = createRequestLogger();
-  const circular = {};
+  const circular: Record<string, unknown> = {};
   circular.self = circular;
-  const state = Map([
+  const state = Map<string, unknown>([
     ['count', 5],
     ['unsupported', circular],
   ]);
 
-  const serialized = serializeClientInitialState(state, request);
+  const serialized = serializeClientInitialState(state as unknown as AppState, request);
 
   assert.deepEqual(JSON.parse(serialized), [['count', 5]]);
   assert.equal(errors.length, 1);
@@ -37,10 +43,11 @@ test('logs full-state serialization failure and falls back to the minimum state'
 
 test('logs and throws when even the minimum state cannot be serialized', () => {
   const { request, errors } = createRequestLogger();
-  const circular = {};
+  const circular: Record<string, unknown> = {};
   circular.self = circular;
 
-  assert.throws(() => serializeClientInitialState(Map([['count', circular]]), request));
+  const state = Map<string, unknown>([['count', circular]]) as unknown as AppState;
+  assert.throws(() => serializeClientInitialState(state, request));
   assert.equal(errors.length, 2);
   assert.match(errors[1][1], /minimum client initial state/);
 });

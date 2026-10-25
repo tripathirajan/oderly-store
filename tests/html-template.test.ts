@@ -11,7 +11,8 @@ test('builds a document shell with SSR markup and hydration assets', () => {
 
   assert.match(html, /<html lang="en">/);
   assert.match(html, /<div id="root"><main>Rendered storefront<\/main><\/div>/);
-  const serializedScriptValue = html.match(/window\.__INITIAL_STATE__ = ("(?:\\.|[^"\\])*")/)[1];
+  const serializedScriptValue = html.match(/window\.__INITIAL_STATE__ = ("(?:\\.|[^"\\])*")/)?.[1];
+  assert.ok(serializedScriptValue);
   assert.deepEqual(JSON.parse(JSON.parse(serializedScriptValue)), [['count', 3]]);
   assert.match(html, /window\.__LANGUAGE__ = "en"/);
   assert.match(html, /\/assets\/oderly-browser\.js/);

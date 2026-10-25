@@ -3,13 +3,14 @@ import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
+import type { FastifyInstance } from 'fastify';
 import { createServer } from '../src/server/app.ts';
 import { createCdnServer } from '../src/server/cdn.ts';
 import { createServer as createBaseServer } from '../src/server/create-server.ts';
 import { serverConfiguration } from '../src/server/config.ts';
 import { createMetricsServer } from '../src/server/metrics.ts';
 
-async function withTestServer(run) {
+async function withTestServer(run: (app: FastifyInstance) => Promise<void>) {
   const staticDirectory = await mkdtemp(join(tmpdir(), 'oderly-static-'));
   await writeFile(join(staticDirectory, 'styles.css'), 'body { color: black; }');
   const app = createServer(staticDirectory);
@@ -78,7 +79,9 @@ test('CDN server serves built assets and includes shared security headers', asyn
     assert.match(response.body, /window\.ready/);
     assert.equal(response.headers['access-control-allow-origin'], 'http://localhost:3000');
     assert.equal(response.headers['x-content-type-options'], 'nosniff');
-    assert.match(response.headers['content-security-policy'], /default-src 'self'/);
+    const contentSecurityPolicy = response.headers['content-security-policy'];
+    assert.ok(contentSecurityPolicy);
+    assert.match(contentSecurityPolicy, /default-src 'self'/);
   } finally {
     await app.close();
     await rm(staticDirectory, { recursive: true, force: true });
@@ -93,7 +96,9 @@ test('metrics server exports Prometheus process metrics', async () => {
     const response = await app.inject({ method: 'GET', url: '/metrics' });
 
     assert.equal(response.statusCode, 200);
-    assert.match(response.headers['content-type'], /^text\/plain/);
+    const contentType = response.headers['content-type'];
+    assert.ok(contentType);
+    assert.match(contentType, /^text\/plain/);
     assert.match(response.body, /process_uptime_seconds/);
     assert.match(response.body, /process_resident_memory_bytes/);
   } finally {

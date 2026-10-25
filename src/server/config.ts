@@ -85,14 +85,18 @@ function isServerConfiguration(value: unknown): value is ServerConfiguration {
   );
 }
 
-function parseConfiguration(serializedConfiguration: string | undefined): ServerConfiguration {
+export function parseServerConfiguration(
+  serializedConfiguration: string | undefined,
+): ServerConfiguration {
   if (!serializedConfiguration) return developmentConfiguration;
 
   let parsed: unknown;
   try {
     parsed = JSON.parse(serializedConfiguration);
   } catch (error) {
-    throw new Error('ODERLY_SERVER_CONFIG must contain valid JSON.', { cause: error });
+    throw new Error('ODERLY_SERVER_CONFIG must contain valid JSON.', {
+      cause: error,
+    });
   }
 
   if (!isServerConfiguration(parsed)) {
@@ -102,7 +106,7 @@ function parseConfiguration(serializedConfiguration: string | undefined): Server
   return parsed;
 }
 
-export const serverConfiguration = parseConfiguration(process.env.ODERLY_SERVER_CONFIG);
+export const serverConfiguration = parseServerConfiguration(process.env.ODERLY_SERVER_CONFIG);
 
 export function getServerAddress(service: 'app' | 'cdn' | 'metrics') {
   const environmentPrefix = service.toUpperCase();

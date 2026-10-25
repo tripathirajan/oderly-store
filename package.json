@@ -39,7 +39,7 @@
     "start:metrics": "node build/server/metrics.js",
     "test": "node scripts/test-runner.mjs",
     "test:coverage": "c8 --config config/c8rc.json npm test",
-    "typecheck": "tsc --noEmit -p config/tsconfig.json",
+    "typecheck": "tsc --noEmit -p config/tsconfig.json && tsc --noEmit -p config/tsconfig.test.json",
     "lint": "eslint --config config/eslint.config.mjs .",
     "verify": "npm run typecheck && npm run test:coverage && npm run lint && npm run format:check && npm run build:prod",
     "format": "prettier --config config/prettier.json --write .",
