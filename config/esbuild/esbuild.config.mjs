@@ -3,7 +3,7 @@ export function createBuilds({
   projectRoot,
   environmentOptions,
   serverConfiguration,
-  clientConfiguration,
+  clientModuleServerConfiguration,
 }) {
   const common = {
     bundle: true,
@@ -16,13 +16,9 @@ export function createBuilds({
     define: {
       ...common.define,
       'process.env.ODERLY_SERVER_CONFIG': JSON.stringify(JSON.stringify(serverConfiguration)),
-    },
-  };
-  const clientBuild = {
-    ...common,
-    define: {
-      ...common.define,
-      'process.env.ODERLY_CLIENT_CONFIG': JSON.stringify(JSON.stringify(clientConfiguration)),
+      'process.env.ODERLY_CLIENT_SERVER_CONFIG': JSON.stringify(
+        JSON.stringify(clientModuleServerConfiguration),
+      ),
     },
   };
   const builds = [];
@@ -66,7 +62,7 @@ export function createBuilds({
   if (target === 'all' || target === 'client') {
     builds.push(
       {
-        ...clientBuild,
+        ...common,
         entryPoints: ['src/client/index.tsx'],
         outfile: 'build/static/oderly-browser.js',
         platform: 'browser',
@@ -74,7 +70,7 @@ export function createBuilds({
         format: 'iife',
       },
       {
-        ...clientBuild,
+        ...common,
         entryPoints: ['src/client/index.tsx'],
         outfile: 'build/static/oderly-legacy-browser.js',
         platform: 'browser',
@@ -82,8 +78,14 @@ export function createBuilds({
         format: 'iife',
       },
       {
-        ...clientBuild,
-        entryPoints: ['src/client/index.tsx'],
+        ...common,
+        define: {
+          ...common.define,
+          'process.env.ODERLY_CLIENT_SERVER_CONFIG': JSON.stringify(
+            JSON.stringify(clientModuleServerConfiguration),
+          ),
+        },
+        entryPoints: ['src/client/node.ts'],
         outfile: 'build/static/oderly-node.js',
         platform: 'node',
         target: 'node24',
@@ -91,7 +93,7 @@ export function createBuilds({
         packages: 'external',
       },
       {
-        ...clientBuild,
+        ...common,
         entryPoints: ['static/assets/styles.css'],
         outfile: 'build/static/styles.css',
         platform: 'browser',

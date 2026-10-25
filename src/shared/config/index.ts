@@ -2,14 +2,12 @@ export interface ClientConfiguration {
   apiEndpoint: string;
 }
 
-const developmentConfiguration: ClientConfiguration = {
-  apiEndpoint: 'http://localhost:3000/api',
-};
-
 export function parseClientConfiguration(
   serializedConfiguration: string | undefined,
 ): ClientConfiguration {
-  if (!serializedConfiguration) return developmentConfiguration;
+  if (!serializedConfiguration) {
+    throw new Error('ODERLY_CLIENT_CONFIG is required. Build with scripts/app-builder.mjs.');
+  }
 
   let parsed: unknown;
   try {

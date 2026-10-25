@@ -1,5 +1,6 @@
 import fastifyStatic from '@fastify/static';
 import { createElement } from 'react';
+import { Map } from 'immutable';
 import { renderToString } from 'react-dom/server';
 import { Provider } from 'react-redux';
 import { I18nextProvider } from 'react-i18next';
@@ -28,7 +29,12 @@ export function createAppServer(
   app.get('/', async (request, reply) => {
     const language = resolveLanguage(request.headers['accept-language']);
     const i18n = await createI18n(language);
-    const store = createAppStore();
+    const store = createAppStore(
+      Map<string, unknown>([
+        ['count', 0],
+        ['config', configuration.clientModule.client],
+      ]),
+    );
     const appHtml = renderToString(
       createElement(
         I18nextProvider,

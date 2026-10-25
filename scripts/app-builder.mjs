@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { build, context } from 'esbuild';
 import { clean } from './clean.mjs';
 import { createBuilds } from '../config/esbuild/esbuild.config.mjs';
-import { getRuntimeConfig } from '../config/runtime.config.mjs';
+import { createRuntimeConfig } from '../config/runtime/factory.ts';
 
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const args = process.argv.slice(2);
@@ -118,7 +118,7 @@ async function main() {
   if (options.clean) clean(options.target);
   const buildMode = options.mode === 'dev' ? 'dev' : 'prod';
   const environmentConfig = await import(`../config/esbuild/esbuild.${buildMode}.mjs`);
-  const runtimeConfig = getRuntimeConfig(options.mode);
+  const runtimeConfig = createRuntimeConfig(options.mode);
   const builds = createBuilds({
     ...options,
     projectRoot,
@@ -126,8 +126,9 @@ async function main() {
     serverConfiguration: {
       common: runtimeConfig.common,
       ...runtimeConfig.server,
+      clientModule: runtimeConfig.clientModule,
     },
-    clientConfiguration: runtimeConfig.client,
+    clientModuleServerConfiguration: runtimeConfig.clientModule.server,
   });
 
   for (const configuration of builds) {

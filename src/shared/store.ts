@@ -4,14 +4,18 @@ import { thunk, type ThunkAction } from 'redux-thunk';
 
 const INCREMENT = 'counter/increment';
 
-export type AppState = Map<string, number>;
+export type AppState = Map<string, unknown>;
 type IncrementAction = { type: typeof INCREMENT };
 
-const initialState: AppState = Map({ count: 0 });
+const initialState: AppState = Map({
+  count: 0,
+  config: { apiEndpoint: '/api' },
+});
 
 function rootReducer(state = initialState, action: IncrementAction): AppState {
   if (action.type === INCREMENT) {
-    return state.update('count', (count = 0) => count + 1);
+    const count = state.get('count');
+    return state.set('count', (typeof count === 'number' ? count : 0) + 1);
   }
 
   return state;

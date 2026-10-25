@@ -24,7 +24,18 @@ export function serializeClientInitialState(
   }
 
   try {
-    const fallbackState = Map<string, number>([['count', clientInitialState.get('count', 0)]]);
+    const config = clientInitialState.get('config');
+    const apiEndpoint =
+      typeof config === 'object' &&
+      config !== null &&
+      'apiEndpoint' in config &&
+      typeof config.apiEndpoint === 'string'
+        ? config.apiEndpoint
+        : '/api';
+    const fallbackState = Map<string, unknown>([
+      ['count', clientInitialState.get('count', 0)],
+      ['config', { apiEndpoint }],
+    ]);
     return serializeMap(fallbackState);
   } catch (error) {
     request.log.error({ err: error }, 'Unable to serialize the minimum client initial state.');

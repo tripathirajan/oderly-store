@@ -19,9 +19,15 @@ function createRequestLogger() {
 
 test('serializes the full Immutable Map as entry tuples', () => {
   const { request, errors } = createRequestLogger();
-  const serialized = serializeClientInitialState(Map({ count: 4 }), request);
+  const serialized = serializeClientInitialState(
+    Map({ count: 4, config: { apiEndpoint: 'https://api.example' } }),
+    request,
+  );
 
-  assert.deepEqual(JSON.parse(serialized), [['count', 4]]);
+  assert.deepEqual(JSON.parse(serialized), [
+    ['count', 4],
+    ['config', { apiEndpoint: 'https://api.example' }],
+  ]);
   assert.equal(errors.length, 0);
 });
 

@@ -16,34 +16,14 @@ export interface ServerConfiguration {
     cors: CorsConfiguration;
     helmet: HelmetConfiguration;
   };
-  app: {
-    host: string;
-    port: number;
-    assetBaseUrl: string;
-  };
+  app: { host: string; port: number; assetBaseUrl: string };
   cdn: { host: string; port: number };
   metrics: { host: string; port: number };
+  clientModule: {
+    server: { apiEndpoint: string };
+    client: { apiEndpoint: string };
+  };
 }
-
-const developmentConfiguration: ServerConfiguration = {
-  common: {
-    cors: {
-      origins: ['http://localhost:3000', 'http://localhost:3001'],
-      methods: ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-      allowedHeaders: ['content-type', 'authorization'],
-      credentials: false,
-    },
-    helmet: {
-      contentSecurityPolicy:
-        "default-src 'self'; script-src 'self' 'unsafe-inline' http://localhost:3001; style-src 'self' 'unsafe-inline' http://localhost:3001; img-src 'self' data: https:; connect-src 'self' http://localhost:3000 http://localhost:3001",
-      referrerPolicy: 'strict-origin-when-cross-origin',
-      crossOriginResourcePolicy: 'cross-origin',
-    },
-  },
-  app: { host: '0.0.0.0', port: 3000, assetBaseUrl: 'http://localhost:3001' },
-  cdn: { host: '0.0.0.0', port: 3001 },
-  metrics: { host: '127.0.0.1', port: 9090 },
-};
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -56,12 +36,21 @@ function isServerConfiguration(value: unknown): value is ServerConfiguration {
   const app = value.app;
   const cdn = value.cdn;
   const metrics = value.metrics;
-  if (!isRecord(common) || !isRecord(app) || !isRecord(cdn) || !isRecord(metrics)) {
+  const clientModule = value.clientModule;
+  if (
+    !isRecord(common) ||
+    !isRecord(app) ||
+    !isRecord(cdn) ||
+    !isRecord(metrics) ||
+    !isRecord(clientModule)
+  ) {
     return false;
   }
 
   const cors = common.cors;
   const helmet = common.helmet;
+  const serverModuleConfig = clientModule.server;
+  const browserModuleConfig = clientModule.client;
   return (
     isRecord(cors) &&
     Array.isArray(cors.origins) &&
@@ -81,14 +70,20 @@ function isServerConfiguration(value: unknown): value is ServerConfiguration {
     typeof cdn.host === 'string' &&
     typeof cdn.port === 'number' &&
     typeof metrics.host === 'string' &&
-    typeof metrics.port === 'number'
+    typeof metrics.port === 'number' &&
+    isRecord(serverModuleConfig) &&
+    typeof serverModuleConfig.apiEndpoint === 'string' &&
+    isRecord(browserModuleConfig) &&
+    typeof browserModuleConfig.apiEndpoint === 'string'
   );
 }
 
 export function parseServerConfiguration(
   serializedConfiguration: string | undefined,
 ): ServerConfiguration {
-  if (!serializedConfiguration) return developmentConfiguration;
+  if (!serializedConfiguration) {
+    throw new Error('ODERLY_SERVER_CONFIG is required. Build with scripts/app-builder.mjs.');
+  }
 
   let parsed: unknown;
   try {

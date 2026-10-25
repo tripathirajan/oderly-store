@@ -5,7 +5,10 @@ import type { AppDispatch, AppState } from '../shared/store';
 import { increment, incrementLater } from '../shared/store';
 
 export function App() {
-  const count = useSelector((state: AppState) => state.get('count', 0));
+  const count = useSelector((state: AppState) => {
+    const value = state.get('count');
+    return typeof value === 'number' ? value : 0;
+  });
   const dispatch = useDispatch<AppDispatch>();
   const { t, i18n } = useTranslation();
   const [pending, setPending] = useState(false);

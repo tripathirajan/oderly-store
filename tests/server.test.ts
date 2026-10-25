@@ -4,11 +4,11 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
 import type { FastifyInstance } from 'fastify';
-import { createServer } from '../src/server/app.ts';
-import { createCdnServer } from '../src/server/cdn.ts';
-import { createServer as createBaseServer } from '../src/server/create-server.ts';
-import { serverConfiguration } from '../src/server/config.ts';
-import { createMetricsServer } from '../src/server/metrics.ts';
+import { createServer } from '../src/server/app';
+import { createCdnServer } from '../src/server/cdn';
+import { createServer as createBaseServer } from '../src/server/create-server';
+import { serverConfiguration } from '../src/server/config';
+import { createMetricsServer } from '../src/server/metrics';
 
 async function withTestServer(run: (app: FastifyInstance) => Promise<void>) {
   const staticDirectory = await mkdtemp(join(tmpdir(), 'oderly-static-'));

@@ -1,9 +1,10 @@
 import assert from 'node:assert/strict';
 import process from 'node:process';
 import { test } from 'node:test';
-import { getRuntimeConfig } from '../config/runtime.config.mjs';
-import { parseServerConfiguration, getServerAddress } from '../src/server/config.ts';
-import { parseClientConfiguration } from '../src/shared/config.ts';
+import { Map } from 'immutable';
+import { createRuntimeConfig } from '../config/runtime/factory.ts';
+import { parseServerConfiguration, getServerAddress } from '../src/server/config';
+import { getBrowserClientConfiguration, getNodeClientConfiguration } from '../src/client/config';
 
 const environmentKeys = [
   'CORS_ORIGINS',
@@ -15,10 +16,13 @@ const environmentKeys = [
   'CDN_PORT',
   'METRICS_HOST',
   'METRICS_PORT',
+  'SERVER_API_ENDPOINT',
+  'API_ENDPOINT',
+  'CONTENT_SECURITY_POLICY',
 ];
 
 function withEnvironment(overrides: NodeJS.ProcessEnv, run: () => void) {
-  const previous = new Map(environmentKeys.map((key) => [key, process.env[key]]));
+  const previous = Map(environmentKeys.map((key) => [key, process.env[key]]));
   for (const key of environmentKeys) delete process.env[key];
   Object.assign(process.env, overrides);
 
@@ -35,16 +39,17 @@ function withEnvironment(overrides: NodeJS.ProcessEnv, run: () => void) {
 
 test('runtime config selects environment defaults', () => {
   withEnvironment({}, () => {
-    const dev = getRuntimeConfig('dev');
-    const staging = getRuntimeConfig('staging');
-    const prod = getRuntimeConfig('prod');
+    const dev = createRuntimeConfig('dev', process.env);
+    const qa = createRuntimeConfig('qa', process.env);
+    const prod = createRuntimeConfig('prod', process.env);
 
     assert.equal(dev.server.app.port, 3000);
-    assert.equal(dev.client.apiEndpoint, 'http://localhost:3000/api');
+    assert.equal(dev.clientModule.ssr.apiEndpoint, 'http://localhost:3000/api');
+    assert.equal(dev.clientModule.csr.apiEndpoint, 'http://localhost:3000/api');
     assert.deepEqual(dev.common.cors.origins, ['http://localhost:3000', 'http://localhost:3001']);
-    assert.deepEqual(staging.common.cors.origins, []);
-    assert.equal(staging.client.apiEndpoint, '/api');
-    assert.equal(prod.client.apiEndpoint, '/api');
+    assert.deepEqual(qa.common.cors.origins, []);
+    assert.equal(qa.clientModule.csr.apiEndpoint, '/api');
+    assert.equal(prod.clientModule.csr.apiEndpoint, '/api');
     assert.match(dev.common.helmet.contentSecurityPolicy, /localhost:3001/);
     assert.doesNotMatch(prod.common.helmet.contentSecurityPolicy, /localhost/);
   });
@@ -62,9 +67,10 @@ test('runtime config applies environment overrides', () => {
       METRICS_HOST: '127.0.0.3',
       METRICS_PORT: '4300',
       API_ENDPOINT: 'https://api.example/v2',
+      SERVER_API_ENDPOINT: 'http://api.internal/v2',
     },
     () => {
-      const config = getRuntimeConfig('prod');
+      const config = createRuntimeConfig('prod', process.env);
       assert.deepEqual(config.common.cors.origins, [
         'https://store.example',
         'https://cdn.example',
@@ -79,29 +85,33 @@ test('runtime config applies environment overrides', () => {
         host: '127.0.0.3',
         port: 4300,
       });
-      assert.equal(config.client.apiEndpoint, 'https://api.example/v2');
+      assert.equal(config.clientModule.ssr.apiEndpoint, 'http://api.internal/v2');
+      assert.equal(config.clientModule.csr.apiEndpoint, 'https://api.example/v2');
     },
   );
 });
 
 test('runtime config rejects unsupported modes and invalid ports', () => {
   withEnvironment({ APP_PORT: '65536' }, () => {
-    assert.throws(() => getRuntimeConfig('qa'), /Unsupported runtime configuration mode/);
-    assert.throws(() => getRuntimeConfig('dev'), /APP_PORT must be an integer/);
+    assert.throws(
+      () => createRuntimeConfig('qa', process.env),
+      /Unsupported runtime configuration mode/,
+    );
+    assert.throws(() => createRuntimeConfig('dev', process.env), /APP_PORT must be an integer/);
   });
 });
 
-test('server config accepts defaults and valid JSON, rejects invalid JSON and shapes', () => {
-  assert.equal(parseServerConfiguration(undefined).app.port, 3000);
-  const validConfiguration = getRuntimeConfig('dev');
+test('server config accepts valid JSON, rejects missing, malformed, and incomplete config', () => {
+  assert.throws(() => parseServerConfiguration(undefined), /is required/);
+  const runtimeConfig = createRuntimeConfig('dev', process.env);
+  const validConfiguration = {
+    common: runtimeConfig.common,
+    ...runtimeConfig.server,
+    clientModule: runtimeConfig.clientModule,
+  };
   assert.deepEqual(
-    parseServerConfiguration(
-      JSON.stringify({
-        common: validConfiguration.common,
-        ...validConfiguration.server,
-      }),
-    ),
-    { common: validConfiguration.common, ...validConfiguration.server },
+    parseServerConfiguration(JSON.stringify(validConfiguration)),
+    validConfiguration,
   );
   assert.throws(() => parseServerConfiguration('{invalid'), /must contain valid JSON/);
   assert.throws(() => parseServerConfiguration('{"app":{}}'), /invalid or incomplete/);
@@ -136,17 +146,17 @@ test('server address resolution honors overrides, legacy PORT, and validates por
   });
 });
 
-test('client config accepts defaults and valid JSON, rejects malformed config', () => {
-  assert.deepEqual(parseClientConfiguration(undefined), {
-    apiEndpoint: 'http://localhost:3000/api',
+test('Node client uses server config while browser client reads config from Redux state', () => {
+  assert.deepEqual(getNodeClientConfiguration('{"apiEndpoint":"http://api.internal"}'), {
+    apiEndpoint: 'http://api.internal',
   });
-  assert.deepEqual(parseClientConfiguration('{"apiEndpoint":"/api"}'), {
-    apiEndpoint: '/api',
-  });
-  assert.throws(() => parseClientConfiguration('{invalid'), /must contain valid JSON/);
-  assert.throws(() => parseClientConfiguration('{}'), /must include a string apiEndpoint/);
+  assert.throws(() => getNodeClientConfiguration(undefined), /is required/);
+  assert.deepEqual(
+    getBrowserClientConfiguration(Map([['config', { apiEndpoint: 'https://api.public' }]])),
+    { apiEndpoint: 'https://api.public' },
+  );
   assert.throws(
-    () => parseClientConfiguration('{"apiEndpoint":42}'),
-    /must include a string apiEndpoint/,
+    () => getBrowserClientConfiguration(Map<string, unknown>()),
+    /must contain a client config/,
   );
 });
